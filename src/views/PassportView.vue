@@ -379,6 +379,61 @@ function handleLogout() {
   router.push('/login')
 }
 
+// Export/Import
+async function exportData() {
+  const data = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    owners: await db.owners.toArray(),
+    cars: await db.cars.toArray(),
+    services: await db.services.toArray(),
+    fuel: await db.fuel.toArray(),
+    tasks: await db.tasks.toArray()
+  }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `garage-backup-${new Date().toISOString().slice(0, 10)}.json`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+async function importData(e: Event) {
+  const target = e.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  try {
+    const text = await file.text()
+    const data = JSON.parse(text)
+
+    if (!data.owners || !data.cars) {
+      alert('Неверный формат файла')
+      return
+    }
+
+    await db.transaction('rw', db.owners, db.cars, db.services, db.fuel, db.tasks, async () => {
+      await db.owners.clear()
+      await db.cars.clear()
+      await db.services.clear()
+      await db.fuel.clear()
+      await db.tasks.clear()
+
+      if (data.owners?.length) await db.owners.bulkAdd(data.owners)
+      if (data.cars?.length) await db.cars.bulkAdd(data.cars)
+      if (data.services?.length) await db.services.bulkAdd(data.services)
+      if (data.fuel?.length) await db.fuel.bulkAdd(data.fuel)
+      if (data.tasks?.length) await db.tasks.bulkAdd(data.tasks)
+    })
+
+    alert('Данные загружены! Обновите страницу.')
+    location.reload()
+  } catch (err) {
+    alert('Ошибка чтения файла')
+  }
+}
+
 function toggleMileageInput() {
   showMileageInput.value = !showMileageInput.value
   if (showMileageInput.value && car.value) {
@@ -966,6 +1021,22 @@ onMounted(async () => {
         </svg>
         <span>СОЗДАТЬ ЗАДАНИЕ</span>
       </button>
+    </div>
+
+    <!-- Export/Import -->
+    <div class="mb-4 p-3" style="border: 1px dashed #999">
+      <div class="text-[10px] font-bold mb-2" style="color: #666; text-transform: uppercase">ДАННЫЕ</div>
+      <div class="flex gap-2">
+        <button class="flex-1 py-2 text-[10px] border border-dashed"
+          style="border-color: #999; color: #666" @click="exportData">
+          ВЫГРУЗКА
+        </button>
+        <label class="flex-1 py-2 text-[10px] border border-dashed text-center cursor-pointer"
+          style="border-color: #999; color: #666">
+          ЗАГРУЗКА
+          <input type="file" accept=".json" @change="importData" class="hidden" />
+        </label>
+      </div>
     </div>
 
     <!-- Feedback -->
