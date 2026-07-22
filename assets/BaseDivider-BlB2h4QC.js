@@ -1,0 +1,1 @@
+import{d as e,v as t}from"./index-BNQg0W7O.js";var n=(e,t)=>{let n=e.__vccOpts||e;for(let[e,r]of t)n[e]=r;return n},r={},i={class:`divider my-6`};function a(n,r){return t(),e(`hr`,i)}var o=n(r,[[`render`,a]]);export{o as t};

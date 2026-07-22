@@ -1,0 +1,1 @@
+import{D as e,T as t,d as n,h as r,v as i}from"./index-BNQg0W7O.js";var a=r({__name:`StatusStamp`,props:{status:{},size:{default:`md`}},setup(r){let a={in_progress:`В РАБОТЕ`,ready:`ГОТОВА`,paid:`ОПЛАЧЕНА`};return(o,s)=>(i(),n(`span`,{class:t([`stamp`,`stamp--${r.status}`,r.size===`lg`?`stamp--lg`:``])},e(a[r.status]),3))}});export{a as t};
